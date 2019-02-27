@@ -1,3 +1,4 @@
+#pragma warning(disable:4996)
 #ifdef WINDOWS
 #include <ELAWindows.h>
 #include <tlhelp32.h>
@@ -14,11 +15,9 @@
 
 namespace SystemUtil
 {
-	void ForEachMatchingFile(std::function<void(const char*, const char*)> callback, const char* filePath, std::vector<std::string> patterns)
+	void ForEachMatchingFile(std::function<void(const char*,_WIN32_FIND_DATAA)> callback, const char* filePath, std::string patterns)
 	{
-		for (std::string spattern : patterns)
-		{
-			char *pattern = const_cast<char*>(spattern.c_str());
+			char *pattern = const_cast<char*>(patterns.c_str());
 #ifdef	WINDOWS
 			HANDLE hFind;
 			WIN32_FIND_DATAA data;
@@ -34,7 +33,7 @@ namespace SystemUtil
 				{
 					if (strcmp(".", data.cFileName) != 0 && strcmp("..", data.cFileName) != 0)
 					{
-						callback(filePath, data.cFileName);
+						callback(filePath, data);
 					}
 				}
 				while (FindNextFileA(hFind, &data));
@@ -59,7 +58,6 @@ namespace SystemUtil
 				closedir(ptrDIR);
 			}
 #endif
-		}
 	}
 
 	void RemoveFile(const char* path, const char* filename)

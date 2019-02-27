@@ -120,11 +120,13 @@ namespace LoggerUtil
 #ifdef LOGAGENT
 		WCHAR path[MAX_PATH];
 		GetModuleFileNameW(NULL, path, MAX_PATH);
-		return GetFileNameWithOutExtension(WideCharToMultiByte(path));
+        std::string tempStringPathName = WideCharToMultiByte(path);
+		return GetFileNameWithOutExtension(tempStringPathName);
 #else
 		TCHAR path[MAX_PATH];
 		GetModuleFileName(nullptr, path, MAX_PATH);
-		return GetFileNameWithOutExtension(std::string(path));
+        std::string tempStringPathName = std::string(path);
+		return GetFileNameWithOutExtension(tempStringPathName);
 #endif
 #else
 		char result[256];
@@ -153,7 +155,6 @@ enum LogLevel
 class MessageBuilder
 {
 public:
-
 #   define ELA_SIMPLE_LOG(LOG_TYPE)\
 		inline MessageBuilder& operator<<(LOG_TYPE msg) {\
 			stream << msg; \
@@ -460,24 +461,24 @@ private:
 		msgBuilder.Clear();
 	}
 
-	std::string FormatLogMessage(const char* message)
-	{
-		time_t t;
-		time(&t);
-		struct tm* now = localtime(&t);
+    std::string FormatLogMessage(const char* message)
+    {
+      time_t t;
+      time(&t);
+      struct tm* now = localtime(&t);
 
-		std::stringstream ss;
-		ss << (now->tm_year + 1900) << "-" << (now->tm_mon + 1) << "-" << now->tm_mday << " ";
-		ss << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << " ";
-		ss << "[" << LoggerUtil::GetThreadID() << "]";
-		ss << message;
-		return ss.str();
-	}
-
-	void RotateLogFile()
+      std::stringstream ss;
+      ss << (now->tm_year + 1900) << "-" << (now->tm_mon + 1) << "-" << now->tm_mday << " ";
+      ss << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << " ";
+      ss << "[" << LoggerUtil::GetThreadID() << "]";
+      ss << message;
+      return ss.str();
+    }
+    
+    void RotateLogFile()
 	{
 		++logFilesCount;
-		if (logFilesCount >= 10)
+    	if (logFilesCount >= 10)
 		{
 			logFilesCount = 1;
 		}
@@ -487,7 +488,7 @@ private:
 		newFile << logFileName << "_" << logFilesCount << "." << extension;
 		std::string fileName = productDir + newFile.str();
 		remove(fileName.c_str());
-		rename(fullLogFileName.c_str(), fileName.c_str());
+        while(rename(fullLogFileName.c_str(), fileName.c_str()));
 		std::stringstream actualFileName;
 		time(&t);
 		actualFileName << logFileName << "." << extension;
